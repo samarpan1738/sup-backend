@@ -35,6 +35,7 @@ export async function signup(req: Request, res: Response) {
             console.log("errStr: " + errStr);
             res.status(400).json({ success: false, message: errStr });
         }
+        res.status(500).json({ success: false, message: e?.message });
     }
 }
 
