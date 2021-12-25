@@ -1,0 +1,37 @@
+API endpoints required 
+8.  POST        /signup                                     -
+9.  POST        /login                                      -
+1.  GET         /user/:username                             -   user details
+2.  GET         /user/:id                                   -   user details with conversations(without messages)   
+3.  GET         /user/:id/conversation/:id                  -   conversation with all messages(wrt to a particular user) and users
+4.  PATCH       /user/:id/conversation/:id/message/:id/     -   Mark a message seen for this user(although this will be done by sockets)
+6.  DELETE      /user/:id/conversation/:id/message/:id      -   Delete a message for this particular user
+13. POST        /user/:id/add                               -   Add a user
+5.  GET         /conversation/:id/message/:id/seen          -   User[] | Get all users who have seen a message
+7.  DELETE      /conversation/:id/message/:id               -   Delete a message for all users in this conversation
+11. POST        /conversation/:id/                          -   Create a conversation
+12. POST        /conversation/:id/message                   -   Add a message to a conversation
+10. POST        /conversation/:id/join                      -   Add a user to a conversation
+10. POST        /conversation/:id/add                       -   Add a user to a conversation
+13. POST        /conversation/:id/leave                     -   Remove a user from a conversation
+
+
+Socket events
+1.  seen    :   Mark a message seen for a particular user
+2.  delete  :   Mark a message deleted for all users(In this case we also need to propogate to other online users) or a particular user
+
+Chat app has
+Feature #0  :    Signup                             [X]
+Feature #1  :    Add people                         [ ] 
+Feature #2  :    Send messages to people            [ ]    
+                -   DM
+                -   Group Chat
+Feature #3  :   Last seen of users
+Feature #4  :   Mark a message seen and/or deleted
+
+
+POSTGRES
+1.  Create user - create user supadmin with password 'suppass';
+2.  Create database - create database moodb;
+3.  Create table - 
+4.  Linking a user to a db - grant all privileges on database sup to supadmin;

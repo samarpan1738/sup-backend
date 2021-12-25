@@ -1,0 +1,99 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["interactiveTransactions"]
+}
+
+model User {
+  id                          Int                           @id @default(autoincrement())
+  email                       String                        @unique
+  username                    String                        @unique
+  name                        String?
+  password                    String
+  profile_pic_uri             String
+  last_active                 DateTime                      @default(now())
+  messages                    Message[]
+  conversationsCreated        Conversation[]
+  conversations               UsersInConversation[]
+  conversationMessagesForUser ConversationMessagesForUser[]
+  status                      String                        @default("Hey there! I'm using Sup")
+
+  @@map("user")
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+
+  @@map("message_type")
+}
+
+model Message {
+  id                          Int                           @id @default(autoincrement())
+  text                        String?
+  file_uri                    String?
+  type                        MessageType                   @default(TEXT)
+  sender_id                   Int
+  conversation_id             Int
+  createdAt                   DateTime                      @default(now()) @map("created_at")
+  sender                      User                          @relation(fields: [sender_id], references: [id])
+  conversation                Conversation                  @relation(fields: [conversation_id], references: [id])
+  conversationMessagesForUser ConversationMessagesForUser[]
+
+  @@map("message")
+}
+
+enum ConversationType {
+  CONTACT
+  GROUP
+
+  @@map("conversation_type")
+}
+
+model Conversation {
+  id                  Int                           @id @default(autoincrement())
+  title               String?
+  type                ConversationType              @default(CONTACT)
+  messages            Message[]
+  users               UsersInConversation[]
+  messagesForUser     ConversationMessagesForUser[]
+  hash                String?                       @unique
+  description         String?
+  created_by_id       Int
+  createdBy           User                          @relation(fields: [created_by_id], references: [id])
+  createdAt           DateTime                      @default(now()) @map("created_at")
+  conversationIconUrl String?                       @map("conversation_icon_url")
+
+  @@map("conversation")
+}
+
+model UsersInConversation {
+  user_id         Int
+  conversation_id Int
+  user            User         @relation(fields: [user_id], references: [id])
+  conversation    Conversation @relation(fields: [conversation_id], references: [id])
+  joined_at       DateTime     @default(now())
+  archived        Boolean      @default(false)
+
+  @@id([user_id, conversation_id])
+  @@map("user_in_conversation")
+}
+
+model ConversationMessagesForUser {
+  user_id         Int
+  conversation_id Int
+  message_id      Int
+  user            User         @relation(fields: [user_id], references: [id])
+  conversation    Conversation @relation(fields: [conversation_id], references: [id])
+  message         Message      @relation(fields: [message_id], references: [id])
+  createdAt       DateTime     @default(now()) @map("created_at")
+  read            Boolean?     @default(dbgenerated("FALSE"))
+
+  @@id([conversation_id, message_id, user_id])
+  @@map("conversation_message_for_user")
+}

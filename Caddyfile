@@ -1,0 +1,8 @@
+localhost {
+	reverse_proxy /api/* http://localhost:2000
+	reverse_proxy http://localhost:3000
+	log {
+		output file app.log
+		format json
+	}
+}
