@@ -7,7 +7,8 @@ const {TENOR_API_KEY}=process.env;
 console.log("TENOR_API_KEY : ",TENOR_API_KEY)
 export async function getTrendingGifs(req: AuthRequest, res: Response) {
     try {
-        const data=await axios.get(`https://g.tenor.com/v1/trending?key=${TENOR_API_KEY}&limit=${req.query.limit}`);
+        const limit=req.query.limit !== undefined ? req.query.limit : "10";
+        const data=await axios.get(`https://g.tenor.com/v1/trending?key=${TENOR_API_KEY}&limit=${limit}`);
         console.log("data : ",data.data)
         res.status(200).json({
             success: true,
