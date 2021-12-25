@@ -37,7 +37,7 @@ const socketServer = require("socket.io")(server, {
         methods: ["GET", "POST"],
     },
 });
-const PORT = process.env.PORT || "2000";
+const PORT = process.env.PORT;
 app.disable("x-powered-by");
 app.use(cookie_parser_1.default());
 app.use(express_1.default.json());

@@ -17,7 +17,7 @@
     "migrate": "yarn prisma migrate dev",
     "revProxy": "caddy run",
     "start": "node dist/src/app.js",
-    "build": "tsc"
+    "build": "yarn prisma generate --schema=./src/db/schema.prisma && tsc"
   },
   "dependencies": {
     "@prisma/client": "3.0.2",
@@ -32,6 +32,6 @@
     "yup": "^0.32.9"
   },
   "engines": {
-    "node": "=12.6.0"
+    "node": ">=12.6.0"
   }
 }
