@@ -83,6 +83,7 @@ export async function signin(req: Request, res: Response) {
                     path: "/",
                     expires: new Date(new Date().getTime() + 60 * 60 * 1000),
                     httpOnly: true,
+                    domain:"localhost",
                 })
                 .json({
                     success: true,
