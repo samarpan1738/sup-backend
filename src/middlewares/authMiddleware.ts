@@ -17,7 +17,10 @@ export async function requiresAuth(
     console.log("token : ", token);
     try {
         if(!token) {
-            throw new Error("Authentication required");
+            return res.status(401).json({
+                success: false,
+                message: "Authentication required",
+            });
         }
         
         const decodedUser = <TokenUser>(

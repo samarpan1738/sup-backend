@@ -1,5 +1,5 @@
 import { CorsOptions } from "cors";
-const whitelist = ["https://localhost", "https://sup-gg.herokuapp.com"];
+const whitelist = ["https://localhost", "https://sup-gg.netlify.app"];
 
 export const corsOptions:CorsOptions = {
     origin: function (origin: any, callback: any) {

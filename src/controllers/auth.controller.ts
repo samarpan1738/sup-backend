@@ -92,7 +92,7 @@ export async function signin(req: Request, res: Response) {
                         name: user.name,
                         userId: user.id,
                         lastActive: user.last_active,
-                        token,
+                        profile_pic_uri:user.profile_pic_uri,
                     },
                 });
         } else {
