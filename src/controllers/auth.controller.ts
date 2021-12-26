@@ -77,6 +77,8 @@ export async function signin(req: Request, res: Response) {
             //     sameSite:true,
             //     expires: new Date(new Date().getTime() + 200 * 1000),
             // });
+            res.header('Access-Control-Allow-Origin', 'https://sup-gg.netlify.app')
+            res.header('Access-Control-Allow-Credentials','true')
             res.status(200)
                 .cookie("JWT", token, {
                     // sameSite: "strict",
