@@ -21,7 +21,7 @@ const app: Express = express();
 const server: Server = require("http").createServer(app);
 const socketServer: any = require("socket.io")(server, {
     cors: {
-        origin: "https://sup-gg.netlify.app/",
+        origin: "https://sup-gg.netlify.app",
         methods: ["GET", "POST"],
     },
 });

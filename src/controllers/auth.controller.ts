@@ -79,7 +79,7 @@ export async function signin(req: Request, res: Response) {
             // });
             res.status(200)
                 .cookie("JWT", token, {
-                    sameSite: "strict",
+                    // sameSite: "strict",
                     path: "/",
                     expires: new Date(new Date().getTime() + 60 * 60 * 1000),
                     httpOnly: true,
