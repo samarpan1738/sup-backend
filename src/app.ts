@@ -21,7 +21,7 @@ const app: Express = express();
 const server: Server = require("http").createServer(app);
 const corsOrigin: any =
     process.env.NODE_ENV === "development" ? process.env.CORS_ORIGIN_DEV : process.env.CORS_ORIGIN_PROD;
-
+console.log("app.ts corsOrigin : ", corsOrigin);
 const socketServer: any = require("socket.io")(server, {
     cors: {
         origin: corsOrigin,
@@ -36,8 +36,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors(corsOptions));
 app.use(express.static('public'))
 
+app.use((req,res,next)=>{
+    res.header('Access-Control-Allow-Origin', corsOrigin)
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header("Access-Control-Allow-Headers", "Content-Type");
+    next();
+})
 app.use("/", require("./routes"));
-
 socketServer.on("connection", (socket: Socket) => {
     console.log("New connection on socket server : ", socket.id);
     socket.on("sendToRoom",async (data)=>{

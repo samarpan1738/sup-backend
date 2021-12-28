@@ -62,16 +62,14 @@ export async function signin(req: Request, res: Response) {
                 username: user.username,
             });
             console.log("Setting token: ", token);
-            res.header('Access-Control-Allow-Origin', corsOrigin)
-            res.header("Access-Control-Allow-Credentials", "true");
             res.status(200)
                 .cookie("JWT", token, {
                     // sameSite: "strict",
                     path: "/",
                     expires: new Date(new Date().getTime() + 60 * 60 * 1000),
                     httpOnly: true,
-                    secure: false,
-                    sameSite:"none"
+                    secure: true,
+                    sameSite:"strict"
                 })
                 .json({
                     success: true,
