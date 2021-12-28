@@ -19,9 +19,12 @@ import {sendToRoom} from "./utils/socketRequestSchema"
 import { addMessageToConversation } from "./controllers/conversation.controller";
 const app: Express = express();
 const server: Server = require("http").createServer(app);
+const corsOrigin: any =
+    process.env.NODE_ENV === "development" ? process.env.CORS_ORIGIN_DEV : process.env.CORS_ORIGIN_PROD;
+
 const socketServer: any = require("socket.io")(server, {
     cors: {
-        origin: ["https://sup-gg.netlify.app","http://localhost:3000"],
+        origin: corsOrigin,
         methods: ["GET", "POST"],
     },
 });
