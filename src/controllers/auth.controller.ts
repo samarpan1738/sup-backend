@@ -67,7 +67,9 @@ export async function signin(req: Request, res: Response) {
                     // sameSite: "strict",
                     path: "/",
                     expires: new Date(new Date().getTime() + 60 * 60 * 1000),
-                    httpOnly: true
+                    httpOnly: true,
+                    sameSite: "none",
+                    secure: true,
                 })
                 .json({
                     success: true,
