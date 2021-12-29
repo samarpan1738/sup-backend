@@ -40,6 +40,7 @@ app.use((req,res,next)=>{
     res.header('Access-Control-Allow-Origin', corsOrigin)
     res.header("Access-Control-Allow-Credentials", "true");
     res.header("Access-Control-Allow-Headers", "Content-Type");
+    res.header("Access-Control-Allow-Methods", "OPTIONS, GET, POST, DELETE, PUT, PATCH");
     next();
 })
 app.use("/", require("./routes"));

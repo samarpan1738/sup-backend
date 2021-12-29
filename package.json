@@ -17,7 +17,8 @@
     "migrate": "yarn prisma migrate dev",
     "revProxy": "caddy run",
     "start": "node dist/src/app.js",
-    "build": "yarn prisma generate --schema=./src/db/schema.prisma && yarn prisma migrate deploy --schema=./src/db/schema.prisma && tsc"
+    "build": "yarn prisma generate --schema=./src/db/schema.prisma && yarn prisma migrate deploy --schema=./src/db/schema.prisma && tsc",
+    "deploy":"git push heroku master"
   },
   "dependencies": {
     "@prisma/client": "3.0.2",
