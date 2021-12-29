@@ -67,58 +67,6 @@ export async function getUserById(req: AuthRequest, res: Response) {
     }
 }
 
-export async function addUser(req: AuthRequest, res: Response) {
-    // 0.   Check if both users are already in a DM conversation
-    // 1.   Create a conversation
-    // 2.   Add req.user and username in the created conversation
-    try {
-        let userIdToAdd: number = parseInt(req.params.idd);
-        const combinationId = `${Math.min(userIdToAdd, req.user.id)}${Math.max(
-            userIdToAdd,
-            req.user.id
-        )}`;
-        const buff = Buffer.from(combinationId, "utf-8");
-        const combinationIdHash = buff.toString("base64");
-        const existingConversation = await prisma.conversation.findUnique({
-            where: {
-                hash: combinationIdHash,
-            },
-        });
-        if (existingConversation) {
-            res.status(200).json({
-                success: true,
-                message: "Already added",
-            });
-        } else {
-            const conversation = await prisma.conversation.create({
-                data: {
-                    hash: combinationIdHash,
-                    users: {
-                        createMany: {
-                            data: [
-                                {
-                                    user_id: req.user.id,
-                                },
-                                {
-                                    user_id: userIdToAdd,
-                                },
-                            ],
-                        },
-                    },
-                    created_by_id:req.user.id
-                },
-            });
-            res.status(200).json({
-                success: true,
-                message: "Users added in conversation",
-                data: conversation,
-            });
-        }
-    } catch (e: any) {
-        handleError(e, res);
-    }
-}
-
 export async function search(req: AuthRequest, res: Response) {
     try {
         let { query } = req.query;
@@ -153,4 +101,37 @@ export async function search(req: AuthRequest, res: Response) {
     } catch (e) {
         handleError(e, res);
     }
+}
+
+export async function updateUser(req: AuthRequest, res: Response) {
+    if(req.user.username !== req.params.username){
+        return res.status(403).json({
+            success: false,
+            data:null,
+            message:"Not authorized"
+        })
+    }
+    const data:any={};
+    if(req.body.status !== undefined || req.body.status !== null){
+        data.status=req.body.status;
+        await prisma.user.update({
+            where:{
+                id:req.user.id
+            },
+            data:{
+                status:req.body.status
+    
+            }
+        })
+        return res.status(204).json({
+            success:true,
+            data:null,
+            message:"Status updated successfully"
+        })
+    }
+    res.status(400).json({
+        success:false,
+        data:null,
+        message:"Bad Request"
+    })
 }

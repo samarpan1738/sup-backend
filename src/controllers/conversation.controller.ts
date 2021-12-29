@@ -4,6 +4,35 @@ import { AuthRequest } from "../types/index";
 import { handleError } from "../utils/errorUtils";
 import { CreateConversationRequest, CONVERSATION_TYPE } from "../utils/requestSchemas/conversation";
 
+function conversationsConverter(data: any):any {
+    const conversations:any = {};
+    data.forEach((c:any) => {
+        console.log("conv :", c);
+        // conv.unreadCounter=0;
+        const conv  = { ...c, unreadCounter: 0 };
+        const conversationUsersObj:any = {};
+        conv.users.forEach(({ user }:any) => {
+            conversationUsersObj[user.id] = user;
+        });
+        conv.users = conversationUsersObj;
+
+        const groupedMessages:any = {};
+        const messages:any = conv.messagesForUser;
+        messages.forEach(({ message, read }:any) => {
+            const groupKey = message.createdAt.toLocaleDateString().substring(0, 10);
+            if (groupedMessages[groupKey] === undefined) groupedMessages[groupKey] = {};
+            groupedMessages[groupKey][message.id.toString()] = { ...message, read };
+
+            if (read === false) ++conv.unreadCounter;
+        });
+        delete conv.messagesForUser;
+        conv.messages = groupedMessages;
+
+        conversations[conv.id.toString()] = conv;
+    });
+    return conversations;
+}
+
 export async function getConversationsForUser(req: AuthRequest, res: Response) {
     try {
         const conversations = await prisma.conversation.findMany({
@@ -35,9 +64,9 @@ export async function getConversationsForUser(req: AuthRequest, res: Response) {
                     },
                     select: {
                         message: {
-                            include: {
-                                sender: true,
-                            },
+                            include:{
+                                sender:false
+                            }
                         },
                         read: true,
                     },
@@ -46,6 +75,7 @@ export async function getConversationsForUser(req: AuthRequest, res: Response) {
                             createdAt: "asc",
                         },
                     },
+                    
                     // take:1
                 },
                 type: true,
@@ -64,7 +94,7 @@ export async function getConversationsForUser(req: AuthRequest, res: Response) {
         });
         res.status(200).json({
             success: true,
-            data: conversations,
+            data: conversationsConverter(conversations),
         });
     } catch (err: any) {
         handleError(err, res);
@@ -118,7 +148,7 @@ export async function createConversation(req: CreateConversationRequest, res: Re
             data.description = req.body.description;
         }
         data.created_by_id = req.user.id;
-        data.conversationIconUrl="https://avatars.dicebear.com/api/identicon/seed.svg";
+        data.conversationIconUrl = "https://avatars.dicebear.com/api/identicon/seed.svg";
         const conversation = await prisma.conversation.create({
             data,
         });
@@ -129,17 +159,70 @@ export async function createConversation(req: CreateConversationRequest, res: Re
                 return { conversation_id: conversation.id, user_id: uid };
             }),
         });
-
+        const conversationDTO = await prisma.conversation.findUnique({
+            where: {
+                id: conversation.id,
+            },
+            select: {
+                users: {
+                    select: {
+                        user: {
+                            select: {
+                                name: true,
+                                id: true,
+                                username: true,
+                                last_active: true,
+                                profile_pic_uri: true,
+                                status: true,
+                            },
+                        },
+                    },
+                },
+                messagesForUser: {
+                    where: {
+                        user_id: req.user.id,
+                    },
+                    select: {
+                        message: {
+                            include: {
+                                sender: true,
+                            },
+                        },
+                        read: true,
+                    },
+                    orderBy: {
+                        message: {
+                            createdAt: "asc",
+                        },
+                    },
+                    // take:1
+                },
+                type: true,
+                title: true,
+                hash: true,
+                id: true,
+                description: true,
+                createdBy: {
+                    select: {
+                        id: true,
+                    },
+                },
+                createdAt: true,
+                conversationIconUrl: true,
+            },
+        });
+        const successMessage: string =
+            data.type === CONVERSATION_TYPE.CONTACT ? "User added successfully" : "Group created successfully";
         res.status(201).json({
             success: true,
-            message: "User successfully added",
-            data: null,
+            message: successMessage,
+            data: conversationsConverter([conversationDTO])
         });
     } catch (err: any) {
         if (err.code && err.code === "P2002")
             res.status(400).json({
                 success: false,
-                message: "Already added",
+                message: "User already added",
                 data: null,
             });
         else handleError(err, res);
@@ -167,7 +250,7 @@ export async function addMessageToConversation(data: any) {
             },
         });
         const queryData: any = [];
-        usersInConversation.forEach((user:any) => {
+        usersInConversation.forEach((user: any) => {
             queryData.push({
                 conversation_id: message.conversation_id,
                 message_id: message.id,
@@ -221,6 +304,27 @@ export async function deleteAllMessagesForUser(req: AuthRequest, res: Response) 
         res.status(200).json({
             success: true,
             message: "Successfully deleted all messages",
+            data: null,
+        });
+    } catch (error) {
+        handleError(error, res);
+    }
+}
+
+export async function deleteConversation(req: AuthRequest, res: Response) {
+    try {
+        const convId: any = req.params.id;
+        await prisma.usersInConversation.delete({
+            where: {
+                user_id_conversation_id: {
+                    conversation_id: convId,
+                    user_id: req.user.id,
+                },
+            },
+        });
+        res.status(200).json({
+            success: true,
+            message: "Successfully deleted conversation",
             data: null,
         });
     } catch (error) {

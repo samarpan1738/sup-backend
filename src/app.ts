@@ -44,6 +44,7 @@ app.use((req,res,next)=>{
     next();
 })
 app.use("/", require("./routes"));
+
 socketServer.on("connection", (socket: Socket) => {
     console.log("New connection on socket server : ", socket.id);
     socket.on("sendToRoom",async (data)=>{
