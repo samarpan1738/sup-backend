@@ -4,21 +4,21 @@ import { AuthRequest } from "../types/index";
 import { handleError } from "../utils/errorUtils";
 import { CreateConversationRequest, CONVERSATION_TYPE } from "../utils/requestSchemas/conversation";
 
-function conversationsConverter(data: any):any {
-    const conversations:any = {};
-    data.forEach((c:any) => {
+function conversationsConverter(data: any): any {
+    const conversations: any = {};
+    data.forEach((c: any) => {
         console.log("conv :", c);
         // conv.unreadCounter=0;
-        const conv  = { ...c, unreadCounter: 0 };
-        const conversationUsersObj:any = {};
-        conv.users.forEach(({ user }:any) => {
+        const conv = { ...c, unreadCounter: 0 };
+        const conversationUsersObj: any = {};
+        conv.users.forEach(({ user }: any) => {
             conversationUsersObj[user.id] = user;
         });
         conv.users = conversationUsersObj;
 
-        const groupedMessages:any = {};
-        const messages:any = conv.messagesForUser;
-        messages.forEach(({ message, read }:any) => {
+        const groupedMessages: any = {};
+        const messages: any = conv.messagesForUser;
+        messages.forEach(({ message, read }: any) => {
             const groupKey = message.createdAt.toLocaleDateString().substring(0, 10);
             if (groupedMessages[groupKey] === undefined) groupedMessages[groupKey] = {};
             groupedMessages[groupKey][message.id.toString()] = { ...message, read };
@@ -57,6 +57,13 @@ export async function getConversationsForUser(req: AuthRequest, res: Response) {
                             },
                         },
                     },
+                    where: {
+                        user_id: {
+                            not: {
+                                equals: req.user.id,
+                            },
+                        },
+                    },
                 },
                 messagesForUser: {
                     where: {
@@ -64,9 +71,9 @@ export async function getConversationsForUser(req: AuthRequest, res: Response) {
                     },
                     select: {
                         message: {
-                            include:{
-                                sender:false
-                            }
+                            include: {
+                                sender: false,
+                            },
                         },
                         read: true,
                     },
@@ -75,7 +82,7 @@ export async function getConversationsForUser(req: AuthRequest, res: Response) {
                             createdAt: "asc",
                         },
                     },
-                    
+
                     // take:1
                 },
                 type: true,
@@ -177,6 +184,13 @@ export async function createConversation(req: CreateConversationRequest, res: Re
                             },
                         },
                     },
+                    where: {
+                        user_id: {
+                            not: {
+                                equals: req.user.id,
+                            },
+                        },
+                    },
                 },
                 messagesForUser: {
                     where: {
@@ -216,7 +230,7 @@ export async function createConversation(req: CreateConversationRequest, res: Re
         res.status(201).json({
             success: true,
             message: successMessage,
-            data: conversationsConverter([conversationDTO])
+            data: conversationsConverter([conversationDTO]),
         });
     } catch (err: any) {
         if (err.code && err.code === "P2002")

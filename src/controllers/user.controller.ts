@@ -1,13 +1,10 @@
-import prisma from "../db/client"
+import prisma from "../db/client";
 import { Request, Response } from "express";
 import * as yup from "yup";
 import { AuthRequest } from "../types";
 import { handleError } from "../utils/errorUtils";
 
-export async function getUserByUsername(
-    req: AuthRequest,
-    res: Response
-): Promise<any> {
+export async function getUserByUsername(req: AuthRequest, res: Response): Promise<any> {
     try {
         const user = await prisma.user.findUnique({
             where: {
@@ -72,18 +69,18 @@ export async function search(req: AuthRequest, res: Response) {
         let { query } = req.query;
         const users = await prisma.user.findMany({
             where: {
-                AND:[
-                {
-                    username: { contains: query?.toString() },
-                },
-                {
-                    id:{
-                        not:{
-                            equals:req.user.id
-                        }
-                    }
-                }
-                ]
+                AND: [
+                    {
+                        username: { contains: query?.toString() },
+                    },
+                    {
+                        id: {
+                            not: {
+                                equals: req.user.id,
+                            },
+                        },
+                    },
+                ],
             },
             select: {
                 email: true,
@@ -104,34 +101,39 @@ export async function search(req: AuthRequest, res: Response) {
 }
 
 export async function updateUser(req: AuthRequest, res: Response) {
-    if(req.user.username !== req.params.username){
-        return res.status(403).json({
+    try {
+        if (req.user.username !== req.params.username) {
+            return res.status(403).json({
+                success: false,
+                data: null,
+                message: "Not authorized",
+            });
+        }
+        const data: any = {};
+        if (req.body.status != undefined || req.body.status != null) {
+            data.status = req.body.status;
+            const user = await prisma.user.update({
+                where: {
+                    id: req.user.id,
+                },
+                data: {
+                    status: req.body.status,
+                },
+            });
+            return res.status(200).json({
+                success: true,
+                data: {
+                    status: user.status,
+                },
+                message: "User data updated successfully",
+            });
+        }
+        res.status(400).json({
             success: false,
-            data:null,
-            message:"Not authorized"
-        })
+            data: null,
+            message: "Bad Request. Only status update supported",
+        });
+    } catch (error) {
+        handleError(error, res);
     }
-    const data:any={};
-    if(req.body.status !== undefined || req.body.status !== null){
-        data.status=req.body.status;
-        await prisma.user.update({
-            where:{
-                id:req.user.id
-            },
-            data:{
-                status:req.body.status
-    
-            }
-        })
-        return res.status(204).json({
-            success:true,
-            data:null,
-            message:"Status updated successfully"
-        })
-    }
-    res.status(400).json({
-        success:false,
-        data:null,
-        message:"Bad Request"
-    })
 }

@@ -80,6 +80,8 @@ export async function signin(req: Request, res: Response) {
                         userId: user.id,
                         lastActive: user.last_active,
                         profile_pic_uri: user.profile_pic_uri,
+                        username: user.username,
+                        status:user.status
                     },
                 });
         } else {
