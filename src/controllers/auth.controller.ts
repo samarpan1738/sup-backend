@@ -81,7 +81,7 @@ export async function signin(req: Request, res: Response) {
                         lastActive: user.last_active,
                         profile_pic_uri: user.profile_pic_uri,
                         username: user.username,
-                        status:user.status
+                        status: user.status,
                     },
                 });
         } else {
@@ -106,8 +106,15 @@ export async function signin(req: Request, res: Response) {
 export async function logout(req: Request, res: Response) {
     console.log("Logout function");
     res.setHeader("Access-Control-Allow-Origin", corsOrigin);
-    res.status(200).clearCookie("JWT").json({
-        success: true,
-        message: "Logged out successfully.",
-    });
+    res.status(200)
+        .clearCookie("JWT", {
+            path: "/",
+            httpOnly: true,
+            sameSite: "none",
+            secure: true,
+        })
+        .json({
+            success: true,
+            message: "Logged out successfully.",
+        });
 }

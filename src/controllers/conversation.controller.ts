@@ -19,7 +19,7 @@ function conversationsConverter(data: any): any {
         const groupedMessages: any = {};
         const messages: any = conv.messagesForUser;
         messages.forEach(({ message, read }: any) => {
-            const groupKey = message.createdAt.toLocaleDateString().substring(0, 10);
+            const groupKey = message.createdAt.toISOString().substring(0, 10);
             if (groupedMessages[groupKey] === undefined) groupedMessages[groupKey] = {};
             groupedMessages[groupKey][message.id.toString()] = { ...message, read };
 
@@ -255,7 +255,7 @@ export async function addMessageToConversation(data: any) {
                 type: data.type,
             },
             include: {
-                sender: true,
+                sender: false,
             },
         });
         const usersInConversation = await prisma.usersInConversation.findMany({
