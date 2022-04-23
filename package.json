@@ -13,7 +13,7 @@
     "typescript": "4.3.5"
   },
   "scripts": {
-    "dev": "nodemon ./src/app.ts",
+    "dev": "export NODE_ENV=development && nodemon ./src/app.ts",
     "migrate": "yarn prisma migrate dev",
     "revProxy": "caddy run",
     "start": "node dist/src/app.js",

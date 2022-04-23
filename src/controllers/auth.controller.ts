@@ -62,7 +62,7 @@ export async function signin(req: Request, res: Response) {
                 username: user.username,
             });
             console.log("Setting token: ", token);
-            res.status(200)
+            return res.status(200)
                 .cookie("JWT", token, {
                     // sameSite: "strict",
                     path: "/",
@@ -91,15 +91,15 @@ export async function signin(req: Request, res: Response) {
                 data: null,
             });
         }
-    } catch (e) {
+    } catch (e:any) {
         if (e instanceof yup.ValidationError) {
-            console.log("Yup validation error");
+            console.log("Yup validation error" , e.message);
             let errStr = "";
             for (let err of e.errors) errStr += err + ". ";
             console.log("errStr: " + errStr);
-            res.status(400).json({ success: false, message: errStr });
+            return res.status(400).json({ success: false, message: errStr });
         }
-        res.status(500).json({ success: false, message: e?.message });
+        return res.status(500).json({ success: false, message: e.message });
     }
 }
 
