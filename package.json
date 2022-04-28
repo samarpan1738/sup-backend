@@ -18,7 +18,7 @@
     "revProxy": "caddy run",
     "start": "node dist/src/app.js",
     "build": "yarn prisma generate --schema=./src/db/schema.prisma && yarn prisma migrate deploy --schema=./src/db/schema.prisma && tsc",
-    "deploy":"git push heroku master"
+    "deploy":"git push heroku main"
   },
   "dependencies": {
     "@prisma/client": "3.0.2",
@@ -33,6 +33,6 @@
     "yup": "^0.32.9"
   },
   "engines": {
-    "node": ">=12.6.0"
+    "node": "16.14.2"
   }
 }
