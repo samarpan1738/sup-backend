@@ -5,8 +5,13 @@ import { comparePasswords, encryptPassword, createToken } from "../utils/authUti
 import * as yup from "yup";
 
 import { signupSchema, loginSchema } from "../utils/requestSchemas/auth";
+import { PrismaClientKnownRequestError, PrismaClientValidationError } from "@prisma/client/runtime";
 const corsOrigin: any =
     process.env.NODE_ENV === "development" ? process.env.CORS_ORIGIN_DEV : process.env.CORS_ORIGIN_PROD;
+
+type PrismClientErrorMeta = {
+    target: string[];
+};
 
 export async function signup(req: Request, res: Response) {
     // Create a user
@@ -26,12 +31,21 @@ export async function signup(req: Request, res: Response) {
             data: user,
         });
     } catch (e) {
+        if(e instanceof PrismaClientKnownRequestError) {
+            let errorMessage = "Error saving user"
+            if( e.code === "P2002" && (e.meta as PrismClientErrorMeta).target.includes("username")) {
+                errorMessage = `Username already exists`;
+            }
+            return res.status(400).json({
+                success: false,
+                message: errorMessage});
+        }
         if (e instanceof yup.ValidationError) {
             console.log("Yup validation error");
             let errStr = "";
             for (let err of e.errors) errStr += err + ". ";
             console.log("errStr: " + errStr);
-            res.status(400).json({ success: false, message: errStr });
+            return res.status(400).json({ success: false, message: errStr });
         }
         res.status(500).json({ success: false, message: e?.message });
     }
