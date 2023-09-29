@@ -3,35 +3,39 @@ import { Request, Response } from "express";
 
 import { comparePasswords, encryptPassword, createToken } from "../utils/authUtils";
 import * as yup from "yup";
-
+import db from "../db/drizzle-client";
 import { signupSchema, loginSchema } from "../utils/requestSchemas/auth";
-import { PrismaClientKnownRequestError, PrismaClientValidationError } from "@prisma/client/runtime";
+import {Prisma } from "@prisma/client";
+import { users } from "../db/schema";
+import { eq } from "drizzle-orm";
 const corsOrigin: any =
     process.env.NODE_ENV === "development" ? process.env.CORS_ORIGIN_DEV : process.env.CORS_ORIGIN_PROD;
 
 type PrismClientErrorMeta = {
     target: string[];
 };
-
+const DEFAULT_STATUS = "Hey there! I'm using Sup";
 export async function signup(req: Request, res: Response) {
-    // Create a user
     try {
-        console.log("/api/auth/signup body : ", req.body);
         const validatedBody = await signupSchema.validate(req.body);
-        console.log("validatedBody : ", validatedBody);
-
         const encryptedPassword = await encryptPassword(validatedBody.password);
+        const user = await db.insert(users).values({
+            username:validatedBody.username,
+            email:validatedBody.email,
+            name:validatedBody.name,
+            password:encryptedPassword,
+            lastActiveAt:validatedBody.last_active,
+            profilePicUri:validatedBody.profile_pic_uri,
+            status:DEFAULT_STATUS
+        }).returning();
 
-        const user = await prisma.user.create({
-            data: { ...validatedBody, password: encryptedPassword },
-        });
         res.status(200).json({
             success: true,
             message: "User registered successfully",
-            data: user,
+            data: user[0],
         });
     } catch (e) {
-        if(e instanceof PrismaClientKnownRequestError) {
+        if(e instanceof Prisma.PrismaClientKnownRequestError) {
             let errorMessage = "Error saving user"
             if( e.code === "P2002" && (e.meta as PrismClientErrorMeta).target.includes("username")) {
                 errorMessage = `Username already exists`;
@@ -54,28 +58,22 @@ export async function signup(req: Request, res: Response) {
 export async function signin(req: Request, res: Response) {
     // Return a JWT token
     try {
-        // console.log("/api/auth/login body : ", req.body);
         const validatedBody = await loginSchema.validate(req.body);
-        // console.log("validatedBody : ", validatedBody);
-        const user = await prisma.user.findUnique({
-            where: { username: validatedBody.username },
-        });
-        console.log("user : ", user);
-        if (user == null) {
+        const usersArr = await db.select().from(users).where(eq(users.username,validatedBody.username)).limit(1);
+        if (usersArr == null || usersArr.length == 0) {
             return res.status(400).json({
                 success: false,
-                message: "Username doesn't exists. Try signup",
+                message: "User not found. Try signup",
                 data: null,
             });
         }
+        const user = usersArr[0];
         const validPassword = await comparePasswords(validatedBody.password, user.password);
-        console.log("validPassword : ", validPassword);
         if (validPassword) {
             const token = createToken({
                 id: user.id,
                 username: user.username,
             });
-            console.log("Setting token: ", token);
             return res.status(200)
                 .cookie("JWT", token, {
                     // sameSite: "strict",
@@ -92,8 +90,8 @@ export async function signin(req: Request, res: Response) {
                         email: user.email,
                         name: user.name,
                         userId: user.id,
-                        lastActive: user.last_active,
-                        profile_pic_uri: user.profile_pic_uri,
+                        lastActive: user.lastActiveAt,
+                        profile_pic_uri: user.profilePicUri,
                         username: user.username,
                         status: user.status,
                     },
